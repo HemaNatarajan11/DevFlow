@@ -7,15 +7,117 @@ import {
   getGitHubProfile,
   getGitHubRepositories,
   getRepositoryActivity,
+  saveGitHubToken,
+  hasGitHubToken,
 } from "../services/githubService.js";
 
-export async function getGitHubProfileController(
-  _req: Request,
+function getUserId(
+  req: Request
+): string | null {
+  return req.userId ?? null;
+}
+
+export async function saveGitHubTokenController(
+  req: Request,
   res: Response
 ) {
   try {
+    const userId = getUserId(req);
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
+
+    const { token } = req.body;
+
+    if (
+      typeof token !== "string"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "GitHub token is required",
+      });
+    }
+
+    await saveGitHubToken(
+      userId,
+      token
+    );
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "GitHub token saved successfully",
+    });
+  } catch (error) {
+    console.error(
+      "Save GitHub token error:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message:
+        "Failed to save GitHub token",
+    });
+  }
+}
+
+export async function getGitHubStatusController(
+  req: Request,
+  res: Response
+) {
+  try {
+    const userId = getUserId(req);
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
+
+    const connected =
+      await hasGitHubToken(userId);
+
+    return res.status(200).json({
+      success: true,
+      connected,
+    });
+  } catch (error) {
+    console.error(
+      "GitHub status error:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message:
+        "Failed to check GitHub connection",
+    });
+  }
+}
+
+export async function getGitHubProfileController(
+  req: Request,
+  res: Response
+) {
+  try {
+    const userId = getUserId(req);
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
+
     const profile =
-      await getGitHubProfile();
+      await getGitHubProfile(userId);
 
     return res.status(200).json({
       success: true,
@@ -36,12 +138,21 @@ export async function getGitHubProfileController(
 }
 
 export async function getGitHubRepositoriesController(
-  _req: Request,
+  req: Request,
   res: Response
 ) {
   try {
+    const userId = getUserId(req);
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
+
     const repositories =
-      await getGitHubRepositories();
+      await getGitHubRepositories(userId);
 
     return res.status(200).json({
       success: true,
@@ -66,6 +177,15 @@ export async function getRepositoryActivityController(
   res: Response
 ) {
   try {
+    const userId = getUserId(req);
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
+
     const {
       owner,
       repo,
@@ -86,6 +206,7 @@ export async function getRepositoryActivityController(
 
     const activity =
       await getRepositoryActivity(
+        userId,
         owner,
         repo
       );

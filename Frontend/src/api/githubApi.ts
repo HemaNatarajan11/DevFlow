@@ -43,3 +43,21 @@ export async function getGitHubActivity(
 
   return response.data.commits;
 }
+
+export async function saveGitHubToken(
+  token: string
+): Promise<void> {
+  await apiClient.post(
+    "/github/token",
+    { token }
+  );
+}
+
+export async function getGitHubStatus(): Promise<boolean> {
+  const response =
+    await apiClient.get(
+      "/github/status"
+    );
+
+  return response.data.connected;
+}

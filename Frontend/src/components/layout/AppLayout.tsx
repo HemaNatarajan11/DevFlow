@@ -7,20 +7,16 @@ import Header from "./Header";
 
 export default function AppLayout() {
   return (
-    <div className="flex min-h-screen bg-gray-50">
-
+    <div className="flex min-h-screen bg-transparent">
       <Sidebar />
 
       <div className="flex min-w-0 flex-1 flex-col">
-
         <Header />
 
-        <main className="flex-1 p-6 lg:p-8">
+        <main className="animate-fade-in-up flex-1 p-6 lg:p-8">
           <Outlet />
         </main>
-
       </div>
-
     </div>
   );
 }

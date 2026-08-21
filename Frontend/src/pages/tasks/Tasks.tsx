@@ -2,6 +2,16 @@ import {
   useState,
 } from "react";
 
+import {
+  Plus,
+  CheckCircle2,
+  Circle,
+  Clock,
+  Flag,
+  Trash2,
+  Loader2,
+} from "lucide-react";
+
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
 import Input from "../../components/ui/Input";
@@ -91,24 +101,53 @@ export default function Tasks() {
     });
   }
 
+  const selectClass =
+    "w-full rounded-xl border border-gray-200 bg-white/80 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all duration-200 hover:border-gray-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100";
+
+  const priorityColors: Record<
+    string,
+    string
+  > = {
+    low: "bg-sky-50 text-sky-600 ring-sky-200",
+    medium:
+      "bg-amber-50 text-amber-600 ring-amber-200",
+    high: "bg-red-50 text-red-600 ring-red-200",
+  };
+
   return (
     <div className="space-y-8">
 
-      <div>
-        <h1 className="text-3xl font-bold">
-          Tasks
-        </h1>
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
 
-        <p className="mt-1 text-gray-500">
-          Track and manage your development tasks.
-        </p>
+        <div>
+
+          <h1 className="text-3xl font-bold">
+            Ta<span className="text-gradient">sks</span>
+          </h1>
+
+          <p className="mt-1 text-gray-500">
+            Track and manage your development tasks.
+          </p>
+
+        </div>
+
       </div>
 
       <Card className="p-6">
 
-        <h2 className="mb-5 font-semibold">
-          Create Task
-        </h2>
+        <div className="mb-5 flex items-center gap-2">
+
+          <div className="rounded-xl bg-gradient-to-br from-sky-500 to-blue-500 p-2 shadow-lg shadow-sky-500/25">
+
+            <Plus className="h-4 w-4 text-white" />
+
+          </div>
+
+          <h2 className="font-semibold">
+            Create Task
+          </h2>
+
+        </div>
 
         <form
           onSubmit={handleCreate}
@@ -134,7 +173,7 @@ export default function Tasks() {
                   e.target.value
                 )
               }
-              className="rounded-lg border border-gray-300 px-3 py-2"
+              className={selectClass}
             >
               <option value="">
                 Select project
@@ -165,7 +204,7 @@ export default function Tasks() {
             }
           />
 
-          <div className="flex gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
 
             <select
               value={priority}
@@ -174,22 +213,28 @@ export default function Tasks() {
                   e.target.value as TaskPriority
                 )
               }
-              className="rounded-lg border border-gray-300 px-3 py-2"
+              className={`${selectClass} sm:w-44`}
             >
               <option value="low">
-                Low
+                🔵 Low
               </option>
 
               <option value="medium">
-                Medium
+                🟡 Medium
               </option>
 
               <option value="high">
-                High
+                🔴 High
               </option>
             </select>
 
-            <Button>
+            <Button
+              type="submit"
+              disabled={
+                !title.trim() ||
+                !projectId
+              }
+            >
               Create Task
             </Button>
 
@@ -202,30 +247,107 @@ export default function Tasks() {
       <div className="grid gap-4">
 
         {isLoading ? (
-          <p>Loading tasks...</p>
-        ) : (
+          <div className="space-y-4">
+
+            {[1, 2, 3].map(
+              (i) => (
+                <div
+                  key={i}
+                  className="skeleton h-24 rounded-2xl"
+                />
+              )
+            )}
+
+          </div>
+        ) : tasks.length ? (
           tasks.map(
             (task) => (
               <Card
                 key={task._id}
+                hover={false}
                 className="p-5"
               >
 
-                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
-                  <div>
+                  <div className="flex items-start gap-4">
 
-                    <h3 className="font-semibold">
-                      {task.title}
-                    </h3>
+                    <button
+                      onClick={() =>
+                        changeStatus(
+                          task._id,
+                          task.status ===
+                            "completed"
+                            ? "todo"
+                            : "completed"
+                        )
+                      }
+                      className={`mt-0.5 transition-colors ${
+                        task.status ===
+                        "completed"
+                          ? "text-emerald-500"
+                          : "text-gray-300 hover:text-indigo-500"
+                      }`}
+                    >
 
-                    <p className="mt-1 text-sm text-gray-500">
-                      {task.description}
-                    </p>
+                      {task.status ===
+                      "completed" ? (
+                        <CheckCircle2 className="h-6 w-6" />
+                      ) : (
+                        <Circle className="h-6 w-6" />
+                      )}
+
+                    </button>
+
+                    <div>
+
+                      <h3
+                        className={`font-semibold ${
+                          task.status ===
+                          "completed"
+                            ? "text-gray-400 line-through"
+                            : "text-gray-900"
+                        }`}
+                      >
+                        {task.title}
+                      </h3>
+
+                      {task.description && (
+                        <p className="mt-1 text-sm text-gray-500">
+                          {task.description}
+                        </p>
+                      )}
+
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ${priorityColors[task.priority]}`}>
+
+                          <Flag className="h-3 w-3" />
+
+                          {task.priority}
+
+                        </span>
+
+                        {task.projectId && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-600 ring-1 ring-indigo-200">
+
+                            {projects.find(
+                              (p) =>
+                                p._id ===
+                                task.projectId
+                            )?.name ||
+                              "Project"}
+
+                          </span>
+                        )}
+
+                      </div>
+
+                    </div>
 
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 lg:ml-12">
 
                     <select
                       value={task.status}
@@ -235,7 +357,12 @@ export default function Tasks() {
                           e.target.value as TaskStatus
                         )
                       }
-                      className="rounded-lg border px-3 py-2 text-sm"
+                      className={`${selectClass} py-2 sm:w-40 ${
+                        task.status ===
+                        "completed"
+                          ? "border-emerald-200 bg-emerald-50/50"
+                          : ""
+                      }`}
                     >
                       <option value="todo">
                         Todo
@@ -250,19 +377,16 @@ export default function Tasks() {
                       </option>
                     </select>
 
-                    <span className="rounded-full bg-gray-100 px-3 py-1 text-xs">
-                      {task.priority}
-                    </span>
-
                     <button
                       onClick={() =>
                         deleteTask(
                           task._id
                         )
                       }
-                      className="text-sm text-red-500"
+                      className="rounded-lg p-2 text-gray-400 transition-all duration-200 hover:bg-red-50 hover:text-red-600"
+                      title="Delete task"
                     >
-                      Delete
+                      <Trash2 className="h-4 w-4" />
                     </button>
 
                   </div>
@@ -272,6 +396,21 @@ export default function Tasks() {
               </Card>
             )
           )
+        ) : (
+          <Card
+            hover={false}
+            className="py-12 text-center"
+          >
+
+            <Loader2 className="mx-auto h-10 w-10 text-gray-300" />
+
+            <p className="mt-4 text-sm text-gray-500">
+              No tasks yet. Create your first task above.
+            </p>
+
+            <Clock className="mx-auto mt-3 h-5 w-5 text-gray-300" />
+
+          </Card>
         )}
 
       </div>

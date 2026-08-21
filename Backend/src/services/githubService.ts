@@ -1,27 +1,72 @@
 import { Octokit } from "@octokit/rest";
 
-function getGitHubToken(): string {
-  const token =
-    process.env.GITHUB_TOKEN;
+import User from "../models/User.js";
+
+async function getGitHubToken(
+  userId: string
+): Promise<string> {
+  const user = await User.findById(
+    userId
+  ).select("+githubToken");
+
+  const token = user?.githubToken;
 
   if (!token) {
     throw new Error(
-      "GITHUB_TOKEN is not configured"
+      "GitHub token not configured. Add your GitHub token in Settings."
     );
   }
 
   return token;
 }
 
-function createOctokit() {
+async function createOctokit(
+  token: string
+) {
   return new Octokit({
-    auth: getGitHubToken(),
+    auth: token,
   });
 }
 
-export async function getGitHubProfile() {
+export async function hasGitHubToken(
+  userId: string
+): Promise<boolean> {
+  const user = await User.findById(
+    userId
+  ).select("+githubToken");
+
+  return Boolean(
+    user?.githubToken
+  );
+}
+
+export async function saveGitHubToken(
+  userId: string,
+  token: string
+) {
+  const trimmed = token.trim();
+
+  if (!trimmed) {
+    throw new Error(
+      "GitHub token is required"
+    );
+  }
+
+  await User.findByIdAndUpdate(
+    userId,
+    { githubToken: trimmed },
+    { new: true }
+  );
+}
+
+export async function getGitHubProfile(
+  userId: string
+) {
+  const token =
+    await getGitHubToken(userId);
+
   const octokit =
-    createOctokit();
+    await createOctokit(token);
 
   const response =
     await octokit.rest.users.getAuthenticated();
@@ -44,9 +89,14 @@ export async function getGitHubProfile() {
   };
 }
 
-export async function getGitHubRepositories() {
+export async function getGitHubRepositories(
+  userId: string
+) {
+  const token =
+    await getGitHubToken(userId);
+
   const octokit =
-    createOctokit();
+    await createOctokit(token);
 
   const response =
     await octokit.rest.repos.listForAuthenticatedUser(
@@ -83,11 +133,15 @@ export async function getGitHubRepositories() {
 }
 
 export async function getRepositoryActivity(
+  userId: string,
   owner: string,
   repo: string
 ) {
+  const token =
+    await getGitHubToken(userId);
+
   const octokit =
-    createOctokit();
+    await createOctokit(token);
 
   const response =
     await octokit.rest.repos.listCommits(

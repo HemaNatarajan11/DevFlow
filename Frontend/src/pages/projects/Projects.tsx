@@ -5,6 +5,8 @@ import {
 import {
   Plus,
   Trash2,
+  FolderKanban,
+  Calendar,
 } from "lucide-react";
 
 import Button from "../../components/ui/Button";
@@ -64,16 +66,18 @@ export default function Projects() {
   return (
     <div className="space-y-8">
 
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
 
         <div>
+
           <h1 className="text-3xl font-bold">
-            Projects
+            Proj<span className="text-gradient">ects</span>
           </h1>
 
           <p className="mt-1 text-gray-500">
             Manage your development projects.
           </p>
+
         </div>
 
       </div>
@@ -82,7 +86,11 @@ export default function Projects() {
 
         <div className="mb-5 flex items-center gap-2">
 
-          <Plus className="h-5 w-5 text-indigo-600" />
+          <div className="rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 p-2 shadow-lg shadow-indigo-500/25">
+
+            <Plus className="h-4 w-4 text-white" />
+
+          </div>
 
           <h2 className="font-semibold">
             Create project
@@ -122,7 +130,18 @@ export default function Projects() {
       </Card>
 
       {isLoading ? (
-        <p>Loading projects...</p>
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+
+          {[1, 2, 3].map(
+            (i) => (
+              <div
+                key={i}
+                className="skeleton h-44 rounded-2xl"
+              />
+            )
+          )}
+
+        </div>
       ) : (
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
 
@@ -130,21 +149,33 @@ export default function Projects() {
             (project) => (
               <Card
                 key={project._id}
-                className="p-6"
+                className="group relative overflow-hidden p-6"
               >
 
-                <div className="flex items-start justify-between">
+                <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-gradient-to-br from-indigo-500/10 to-violet-500/10 blur-2xl transition-all duration-300 group-hover:from-indigo-500/20 group-hover:to-violet-500/20" />
 
-                  <div>
+                <div className="relative flex items-start justify-between">
 
-                    <h2 className="text-lg font-semibold">
-                      {project.name}
-                    </h2>
+                  <div className="flex items-start gap-3">
 
-                    <p className="mt-2 text-sm text-gray-500">
-                      {project.description ||
-                        "No description"}
-                    </p>
+                    <div className="rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 p-2.5 shadow-lg shadow-indigo-500/25">
+
+                      <FolderKanban className="h-5 w-5 text-white" />
+
+                    </div>
+
+                    <div>
+
+                      <h2 className="text-lg font-semibold text-gray-900">
+                        {project.name}
+                      </h2>
+
+                      <p className="mt-1.5 text-sm text-gray-500">
+                        {project.description ||
+                          "No description"}
+                      </p>
+
+                    </div>
 
                   </div>
 
@@ -154,22 +185,45 @@ export default function Projects() {
                         project._id
                       )
                     }
-                    className="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                    className="rounded-lg p-2 text-gray-400 transition-all duration-200 hover:bg-red-50 hover:text-red-600"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
 
                 </div>
 
-                <div className="mt-6 text-xs text-gray-400">
+                <div className="relative mt-6 flex items-center gap-1.5 text-xs text-gray-400">
+
+                  <Calendar className="h-3.5 w-3.5" />
+
                   Created{" "}
                   {new Date(
                     project.createdAt
-                  ).toLocaleDateString()}
+                  ).toLocaleDateString(
+                    undefined,
+                    {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    }
+                  )}
+
                 </div>
 
               </Card>
             )
+          )}
+
+          {!projects.length && (
+            <div className="col-span-full py-12 text-center">
+
+              <FolderKanban className="mx-auto h-12 w-12 text-gray-300" />
+
+              <p className="mt-4 text-sm text-gray-500">
+                No projects yet. Create your first project above.
+              </p>
+
+            </div>
           )}
 
         </div>

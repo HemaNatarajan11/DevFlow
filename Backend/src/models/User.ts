@@ -8,6 +8,7 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
+  githubToken?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,6 +35,11 @@ const userSchema = new Schema<IUser>(
       type: String,
       required: true,
       minlength: 6,
+      select: false,
+    },
+
+    githubToken: {
+      type: String,
       select: false,
     },
   },
